@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Upload Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            padding: 2rem;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .upload-area.dragover {
+            border-color: #5a67d8;
+            background: #e6f3ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .browse-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .browse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .uploaded-files {
+            margin-top: 2rem;
+            padding: 0 2rem 2rem;
+        }
+
+        .files-header {
+            font-size: 1.5rem;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .file-item {
+            background: #f8f9ff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .file-preview {
+            width: 100%;
+            height: 200px;
+            background: #f0f4f8;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .file-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .file-preview video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        .file-icon {
+            font-size: 3rem;
+            color: #667eea;
+        }
+
+        .file-details {
+            text-align: center;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+
+        .file-size {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-type {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c53030;
+            transform: scale(1.1);
+        }
+
+        .no-files {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            margin-top: 2rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .upload-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9ff;
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .file-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .upload-area {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .upload-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📎 Document Upload Center</h1>
+            <p>Upload and manage your documents, images, videos, and more</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drag and drop files here or click to browse</div>
+                <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose Files
+                </button>
+                <input type="file" id="fileInput" class="file-input" multiple accept="*/*">
+                <div class="file-info">
+                    Supported formats: Images, Videos, Documents, Archives, Audio, and more
+                </div>
+            </div>
+
+            <div class="upload-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalFiles">0</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalSize">0 KB</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="fileTypes">0</div>
+                    <div class="stat-label">File Types</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="uploaded-files">
+            <div class="files-header">
+                <span>📋 Uploaded Files</span>
+            </div>
+            <div class="file-grid" id="fileGrid">
+                <div class="no-files">No files uploaded yet. Drop some files above to get started!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let totalSize = 0;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileGrid = document.getElementById('fileGrid');
+        const totalFilesEl = document.getElementById('totalFiles');
+        const totalSizeEl = document.getElementById('totalSize');
+        const fileTypesEl = document.getElementById('fileTypes');
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            handleFiles(files);
+        });
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            handleFiles(files);
+            e.target.value = '';
+        });
+
+        function handleFiles(files) {
+            files.forEach((file) => {
+                const fileId = Date.now() + Math.random();
+                const fileObj = {
+                    id: fileId,
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    uploadDate: new Date()
+                };
+
+                uploadedFiles.push(fileObj);
+                addFileToGrid(fileObj);
+                updateStats();
+            });
+        }
+
+        function addFileToGrid(fileObj) {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.style.opacity = '0';
+            fileItem.style.transform = 'translateY(20px)';
+
+            const filePreview = document.createElement('div');
+            filePreview.className = 'file-preview';
+
+            // Create appropriate preview based on file type
+            if (fileObj.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(fileObj.file);
+                img.onload = () => URL.revokeObjectURL(img.src);
+                filePreview.appendChild(img);
+            } else if (fileObj.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = URL.createObjectURL(fileObj.file);
+                video.controls = true;
+                video.muted = true;
+                filePreview.appendChild(video);
+            } else {
+                const icon = document.createElement('div');
+                icon.className = 'file-icon';
+                icon.textContent = getFileIcon(fileObj.type);
+                filePreview.appendChild(icon);
+            }
+
+            const fileDetails = document.createElement('div');
+            fileDetails.className = 'file-details';
+
+            const fileName = document.createElement('div');
+            fileName.className = 'file-name';
+            fileName.textContent = fileObj.name;
+
+            const fileSize = document.createElement('div');
+            fileSize.className = 'file-size';
+            fileSize.textContent = formatFileSize(fileObj.size);
+
+            const fileType = document.createElement('div');
+            fileType.className = 'file-type';
+            fileType.textContent = getFileExtension(fileObj.name);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = () => deleteFile(fileObj.id);
+
+            fileDetails.appendChild(fileName);
+            fileDetails.appendChild(fileSize);
+            fileDetails.appendChild(fileType);
+
+            fileItem.appendChild(filePreview);
+            fileItem.appendChild(fileDetails);
+            fileItem.appendChild(deleteBtn);
+
+            if (fileGrid.querySelector('.no-files')) {
+                fileGrid.removeChild(fileGrid.querySelector('.no-files'));
+            }
+
+            fileGrid.appendChild(fileItem);
+
+            // Animate the file item
+            setTimeout(() => {
+                fileItem.style.transition = 'all 0.3s ease';
+                fileItem.style.opacity = '1';
+                fileItem.style.transform = 'translateY(0)';
+            }, 100);
+        }
+
+        function deleteFile(fileId) {
+            const index = uploadedFiles.findIndex(f => f.id === fileId);
+            if (index > -1) {
+                uploadedFiles.splice(index, 1);
+                const fileItem = document.querySelector(`.file-item:nth-child(${index + 1})`);
+                if (fileItem) {
+                    fileItem.style.transition = 'all 0.3s ease';
+                    fileItem.style.opacity = '0';
+                    fileItem.style.transform = 'translateY(-20px)';
+                    setTimeout(() => {
+                        fileGrid.removeChild(fileItem);
+                        if (uploadedFiles.length === 0) {
+                            const noFiles = document.createElement('div');
+                            noFiles.className = 'no-files';
+                            noFiles.textContent = 'No files uploaded yet. Drop some files above to get started!';
+                            fileGrid.appendChild(noFiles);
+                        }
+                    }, 300);
+                }
+                updateStats();
+            }
+        }
+
+        function updateStats() {
+            totalSize = uploadedFiles.reduce((sum, file) => sum + file.size, 0);
+            const uniqueTypes = new Set(uploadedFiles.map(f => getFileExtension(f.name))).size;
+
+            totalFilesEl.textContent = uploadedFiles.length;
+            totalSizeEl.textContent = formatFileSize(totalSize);
+            fileTypesEl.textContent = uniqueTypes;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toUpperCase();
+        }
+
+        function getFileIcon(type) {
+            if (type.startsWith('image/')) return '🖼️';
+            if (type.startsWith('video/')) return '🎬';
+            if (type.startsWith('audio/')) return '🎵';
+            if (type.includes('pdf')) return '📄';
+            if (type.includes('word') || type.includes('document')) return '📝';
+            if (type.includes('excel') || type.includes('spreadsheet')) return '📊';
+            if (type.includes('powerpoint') || type.includes('presentation')) return '📽️';
+            if (type.includes('zip') || type.includes('rar') || type.includes('7z')) return '🗜️';
+            if (type.includes('text')) return '📝';
+            return '📄';
+        }
+    </script>
+</body>
+</html>
